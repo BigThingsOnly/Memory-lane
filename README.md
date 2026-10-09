@@ -142,6 +142,18 @@ link like `https://memorylane.vercel.app/e/johns-wedding-a1b2`.
   segment tabs, and you can present a live slideshow scoped to just one
   segment. Leave segments empty and everything works exactly as a single
   simple event, same as before.
+- **Hosts stay signed in** — the login is saved in the browser and renewed
+  in the background, so a host only needs the email link once per browser
+  (per web address). It's read locally, so a slow or dropped connection
+  doesn't look like a sign-out, and "Sign out" only affects the device you
+  click it on. Private/incognito windows, a different browser, or switching
+  between `localhost` and the live site each count as a separate sign-in.
+- **QR code for every event** — a "▦ QR code" button on each event in the
+  dashboard (and a "Guest QR code" card in the event editor) shows a
+  scannable code for that event's guest link, with Download PNG, Print
+  (prints a clean poster-style sheet with the event name) and Copy link.
+  Generate it from your **live** site, not localhost, so the code points to
+  your real address.
 - **Download all** — a "⬇ Download all" button on the gallery (and a
   "⬇ Download folder" inside each sender's folder) zips up everything —
   photos, videos, voice notes, and messages as text files — for you to

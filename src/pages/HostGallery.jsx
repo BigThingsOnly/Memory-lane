@@ -35,12 +35,13 @@ export default function HostGallery() {
 
   async function load() {
     setLoading(true)
-    const [{ data: { user } }, { data: ev }, { data: gal }, { data: mem }] = await Promise.all([
-      supabase.auth.getUser(),
+    const [{ data: { session } }, { data: ev }, { data: gal }, { data: mem }] = await Promise.all([
+      supabase.auth.getSession(),
       supabase.from('events').select('*').eq('id', id).single(),
       supabase.from('galleries').select('*').eq('event_id', id).order('sort_order'),
       supabase.from('memories').select('*').eq('event_id', id).order('created_at', { ascending: false }),
     ])
+    const user = session?.user
     setEvent(ev)
     setIsOwner(!!ev && !!user && ev.host_id === user.id)
     setGalleries(gal || [])

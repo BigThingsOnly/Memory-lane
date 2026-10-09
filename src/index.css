@@ -580,3 +580,48 @@ textarea { resize: vertical; }
   animation: shimmer 1.4s ease infinite;
   border-radius: 16px;
 }
+
+/* ---------- Event QR code ---------- */
+.qr-print-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.qr-sheet-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.qr-sheet-bar { width: 44px; height: 3px; border-radius: 2px; margin: 12px 0; }
+.qr-sheet-sub { color: var(--muted); font-size: 13px; max-width: 260px; margin-bottom: 14px; }
+.qr-img { width: 220px; height: 220px; border-radius: 8px; display: block; }
+.qr-sheet-link { margin-top: 12px; font-size: 12px; color: var(--muted); word-break: break-all; max-width: 280px; }
+
+.qr-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+
+@media print {
+  body * { visibility: hidden !important; }
+  .qr-print-sheet, .qr-print-sheet * { visibility: visible !important; }
+  .qr-print-sheet {
+    position: fixed;
+    inset: 0;
+    justify-content: center;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .qr-sheet-title { font-size: 44px; }
+  .qr-sheet-sub { font-size: 20px; max-width: 520px; }
+  .qr-sheet-bar { width: 80px; height: 5px; }
+  .qr-img { width: 460px; height: 460px; }
+  .qr-sheet-link { font-size: 16px; max-width: 600px; }
+}

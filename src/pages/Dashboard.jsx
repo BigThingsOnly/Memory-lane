@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import AppHeader from '../components/AppHeader.jsx'
 import { useToast } from '../components/ToastProvider.jsx'
 import { useConfirm } from '../components/ConfirmProvider.jsx'
+import EventQR from '../components/EventQR.jsx'
 
 // storage.list() returns at most 100 items per call by default — page through
 // with offset so an event with more uploads than that doesn't leave files behind.
@@ -24,16 +25,32 @@ async function listAllFiles(bucket, prefix) {
 export default function Dashboard() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [qrEvent, setQrEvent] = useState(null) // event whose QR code modal is open
   const navigate = useNavigate()
   const toast = useToast()
   const confirm = useConfirm()
 
   useEffect(() => { loadEvents() }, [])
 
+  useEffect(() => {
+    if (!qrEvent) return
+    const onKey = (e) => { if (e.key === 'Escape') setQrEvent(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [qrEvent])
+
   async function loadEvents() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); navigate('/login'); return } // session expired mid-visit
+    // getSession() reads the saved login locally, so a slow or dropped connection
+    // can't make a signed-in host look signed out. (A genuine sign-out is handled by
+    // the route guard in App.jsx, which redirects on its own.)
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
+    if (!user) {
+      setLoading(false)
+      toast("Couldn't confirm your sign-in. Check your connection and refresh the page.", 'error')
+      return
+    }
     const { data } = await supabase
       .from('events')
       .select('*')
@@ -51,8 +68,9 @@ export default function Dashboard() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '') + '-' + Math.random().toString(36).slice(2, 6)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast('Your session expired — please sign in again.', 'error'); navigate('/login'); return }
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
+    if (!user) { toast("Couldn't confirm your sign-in. Check your connection and try again.", 'error'); return }
     const { data, error } = await supabase
       .from('events')
       .insert({ name, slug, host_id: user.id })
@@ -64,7 +82,7 @@ export default function Dashboard() {
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' }) // this device only — don't sign the host out everywhere
     navigate('/')
   }
 
@@ -138,6 +156,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link className="btn btn-outline" to={`/event/${ev.id}/gallery`}>Guest memories</Link>
               <Link className="btn" to={`/event/${ev.id}/edit`}>Manage</Link>
+              <button className="btn btn-outline" onClick={() => setQrEvent(ev)}>▦ QR code</button>
               <Link className="btn btn-outline" to={`/event/${ev.id}/slideshow`} target="_blank">🎬 Slideshow</Link>
               <button onClick={() => deleteEvent(ev)} style={{ background: 'none', border: 'none', color: 'crimson', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
                 Delete
@@ -146,6 +165,17 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {qrEvent && (
+        <div className="modal-overlay" onClick={() => setQrEvent(null)}>
+          <div className="modal-card" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <EventQR event={qrEvent} />
+            <div className="modal-actions" style={{ marginTop: 14 }}>
+              <button className="btn btn-outline" onClick={() => setQrEvent(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

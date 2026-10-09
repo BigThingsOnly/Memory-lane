@@ -4,22 +4,26 @@ import { supabase } from '../supabaseClient'
 import { BrandMark } from '../components/AppHeader.jsx'
 
 export default function AdminDashboard() {
-  const [status, setStatus] = useState('checking') // 'checking' | 'denied' | 'ok'
+  const [status, setStatus] = useState('checking') // 'checking' | 'denied' | 'error' | 'ok'
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { init() }, [])
 
   async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
+    setStatus('checking')
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) { setStatus('denied'); return }
 
-    const { data: adminRow } = await supabase
+    const { data: adminRow, error } = await supabase
       .from('admins')
       .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle()
 
+    // A failed lookup (e.g. no connection) is not the same as "not an admin".
+    if (error) { setStatus('error'); return }
     if (!adminRow) { setStatus('denied'); return }
 
     setStatus('ok')
@@ -35,6 +39,20 @@ export default function AdminDashboard() {
 
   if (status === 'checking') {
     return <div style={styles.stage}><p style={{ color: '#fff' }}>Checking access…</p></div>
+  }
+
+  if (status === 'error') {
+    return (
+      <div style={styles.stage}>
+        <div style={{ textAlign: 'center', maxWidth: 360 }}>
+          <h2 style={{ color: '#fff', marginBottom: 8 }}>Couldn't check access</h2>
+          <p style={{ color: '#9a97a3', marginBottom: 20 }}>
+            That looks like a connection problem, not a permissions one. Check your internet and try again.
+          </p>
+          <button onClick={init} style={{ ...styles.linkBtn, border: 'none', cursor: 'pointer' }}>Try again</button>
+        </div>
+      </div>
+    )
   }
 
   if (status === 'denied') {

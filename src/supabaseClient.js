@@ -12,4 +12,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,     // keep hosts signed in across visits (saved in this browser)
+    autoRefreshToken: true,   // renew the short-lived access token in the background
+    detectSessionInUrl: true, // pick up the session when a host clicks their magic link
+  },
+})

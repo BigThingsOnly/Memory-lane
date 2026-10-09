@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import AppHeader from '../components/AppHeader.jsx'
 import { useToast } from '../components/ToastProvider.jsx'
 import { useConfirm } from '../components/ConfirmProvider.jsx'
+import EventQR from '../components/EventQR.jsx'
 
 export default function EventEditor() {
   const { id } = useParams()
@@ -176,6 +177,14 @@ export default function EventEditor() {
                   + Add
                 </button>
               </form>
+            </div>
+
+            <div className="card">
+              <h3 style={{ marginTop: 0 }}>Guest QR code</h3>
+              <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+                Print it on invitations, table cards or a sign at the venue. Guests scan it to open this event's upload page.
+              </p>
+              <EventQR event={event} />
             </div>
           </div>
 
